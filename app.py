@@ -1,25 +1,36 @@
+# Version 1.0 - Fire Loss Estimator (Multi-Site Selector)
+# Using Streamlit - basic version with site selection and dynamic item input
+
 import streamlit as st
 
-st.set_page_config(page_title="حاسبة الخسائر", layout="centered")
+st.set_page_config(page_title="حاسبة الخسائر الفنية", layout="centered")
 
-st.title("🔥 حاسبة تقدير الخسائر من الحريق")
-st.markdown("احسب عدد القطع المحترقة وقيمة الخسارة.")
+st.title("🔥 حاسبة الخسائر الفنية")
+st.markdown("ابدأ باختيار نوع الموقع، ثم أدخل تفاصيل القطع لتقدير الخسائر.")
 
-site_length = st.number_input("طول الموقع (م)", min_value=0.0)
-site_width = st.number_input("عرض الموقع (م)", min_value=0.0)
+# اختيار نوع الموقع
+site_type = st.selectbox("📍 نوع الموقع:", ["اختر", "منزل", "مركبة", "محل تجاري"])
 
-item_length = st.number_input("طول القطعة (م)", min_value=0.0)
-item_width = st.number_input("عرض القطعة (م)", min_value=0.0)
-item_price = st.number_input("سعر القطعة (ريال)", min_value=0.0)
+# قائمة القطع بناء على نوع الموقع
+items_by_site = {
+    "منزل": ["كنب ثلاثي", "كنب ثنائي", "كنب فردي", "مكيف سبليت", "مكيف شباك", "شاشة", "دولاب", "فرشة", "دلة", "إبريق", "ثلاجة", "غسالة", "جوال", "لابتوب", "بوية"],
+    "مركبة": ["مقاعد", "شاشة سيارة", "بطارية", "إطارات", "أغراض شخصية"],
+    "محل تجاري": ["رف عرض", "كاشير", "كاميرا مراقبة", "ديكور", "بضاعة"]
+}
 
-if st.button("احسب"):
-    site_area = site_length * site_width
-    item_area = item_length * item_width
+if site_type != "اختر":
+    st.header("🧾 تفاصيل القطع:")
+    total_loss = 0
+    selected_items = items_by_site.get(site_type, [])
 
-    if item_area > 0:
-        count = int(site_area // item_area)
-        loss = count * item_price
-        st.success(f"العدد التقريبي: {count} قطعة")
-        st.success(f"الخسارة الكلية: {loss:,.2f} ريال")
-    else:
-        st.error("❌ تأكد من أبعاد القطعة.")
+    for item in selected_items:
+        with st.expander(f"🛠️ {item}"):
+            quantity = st.number_input(f"عدد {item}:", min_value=0, step=1, key=f"{item}_qty")
+            price = st.number_input(f"سعر {item} (ريال):", min_value=0.0, step=10.0, key=f"{item}_price")
+            item_loss = quantity * price
+            total_loss += item_loss
+            if quantity > 0:
+                st.success(f"خسارة {item}: {item_loss:,.2f} ريال")
+
+    st.subheader("💰 الإجمالي:")
+    st.success(f"إجمالي الخسائر التقريبي: {total_loss:,.2f} ريال")
